@@ -16,11 +16,12 @@
 typedef GFXcanvas16 Canvas;
 typedef Adafruit_ST7789 yoDisplay;
 
+// Rozmiar zgodny z zestawem logos_raw/320x240 (prepare_spiffs_logos.py), jak w ILI9341.
 #ifndef STATION_LOGO_W
-  #define STATION_LOGO_W 90
+  #define STATION_LOGO_W 72
 #endif
 #ifndef STATION_LOGO_H
-  #define STATION_LOGO_H 60
+  #define STATION_LOGO_H 48
 #endif
 
 #include "tools/commongfx.h"
