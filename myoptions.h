@@ -1,6 +1,6 @@
 
 #define VERSION v8.8.2_TB
-#define FIRMWARE_VERSION "8.8.2-build.3"
+#define FIRMWARE_VERSION "8.8.2-build.6"
 // clang-format off
 /*
    Read the before use !!!
@@ -17,8 +17,7 @@
     #define ARDUINO_ESP32S3_DEV
 #endif
 
-// Obrót obrazu o 180 stopni. Odkomentuj dla ILI9488 3,5" oraz ILI9341.
- #define SCREEN_ROTATE
+// Obrót obrazu o 180 stopni (SCREEN_ROTATE) – ustawiany niżej, w sekcji LCD DISPLAY, zależnie od DSP_MODEL.
 
 // #define HEAP_DBG
 // #define DEBUG_PROFILER       // Lekki profiler: display.loop/draw, web, main, player/audio, network
@@ -49,22 +48,42 @@ Supported languages: HU, PL, NL, GR, DE (UA Local/namedays/namedays_UA.h is not 
 #ifndef DSP_ILI9488
   #define DSP_ILI9488 21
 #endif
+#ifndef DSP_ST7789
+  #define DSP_ST7789 4
+#endif
 
 //#define DSP_MODEL DSP_ILI9488
-#define DSP_MODEL DSP_ILI9341
+//#define DSP_MODEL DSP_ILI9341
 // #define DSP_MODEL DSP_ST7796
+/* Waveshare ESP32-S3-Touch-LCD-2.8 (ST7789T3 240x320, CST328, PCM5101) */
+#define DSP_MODEL DSP_ST7789
 
 /*----- OLED DISPLAY -----*/
 // #define DSP_MODEL      DSP_SSD1322
 
+#if DSP_MODEL == DSP_ILI9341 || DSP_MODEL == DSP_ILI9488
+  #define SCREEN_ROTATE
+#endif
+
 /*----- DISPLAY PIN SETS -----*/
-#define TFT_DC         9
-#define TFT_CS         10
-#define TFT_RST        -1
+#if DSP_MODEL == DSP_ST7789
+  /* Waveshare: ekran na własnych pinach SPI (bez MISO) */
+  #define TFT_SCLK       40
+  #define TFT_MOSI       45
+  #define TFT_CS         42
+  #define TFT_DC         41
+  #define TFT_RST        39
+#else
+  #define TFT_DC         9
+  #define TFT_CS         10
+  #define TFT_RST        -1
+#endif
 #if DSP_MODEL == DSP_ILI9341
   #define BRIGHTNESS_PIN 14
 #elif DSP_MODEL == DSP_ILI9488
   #define BRIGHTNESS_PIN 21
+#elif DSP_MODEL == DSP_ST7789
+  #define BRIGHTNESS_PIN 5
 #else
   #error "Brak konfiguracji BRIGHTNESS_PIN dla wybranego DSP_MODEL/PCB"
 #endif
@@ -75,11 +94,13 @@ Supported languages: HU, PL, NL, GR, DE (UA Local/namedays/namedays_UA.h is not 
 */
 
 /*----- Touch ISP -----*/
+#if DSP_MODEL == DSP_ILI9341 || DSP_MODEL == DSP_ILI9488
  #define ENABLE_TOUCH
  #define TS_MODEL TS_MODEL_XPT2046
  #define TS_CS    48
+#endif
 
- 
+
 /*----- Touch I2C -----*/
 // #define TS_MODEL TS_MODEL_FT6X36
 // #define TS_SCL      7
@@ -103,9 +124,16 @@ Supported languages: HU, PL, NL, GR, DE (UA Local/namedays/namedays_UA.h is not 
   #define I2S_DOUT 16
   #define I2S_BCLK 17
   #define I2S_LRC  15
+#elif DSP_MODEL == DSP_ST7789
+  /* Waveshare: PCM5101 */
+  #define I2S_DOUT 47
+  #define I2S_BCLK 48
+  #define I2S_LRC  38
 #else
   #error "Brak konfiguracji pinow PCM5102A dla wybranego DSP_MODEL/PCB"
 #endif
+/* Waveshare: piny enkoderów kolidują z dotykiem/zasilaniem – enkodery wyłączone */
+#if DSP_MODEL == DSP_ILI9341 || DSP_MODEL == DSP_ILI9488
 /* ENCODER 1 */
 #define ENC_BTNR      4  // S2
 #define ENC_BTNL      5  // S1
@@ -120,6 +148,7 @@ Supported languages: HU, PL, NL, GR, DE (UA Local/namedays/namedays_UA.h is not 
 
 // Dwa niezależne enkodery: lewy=stacje, prawy=głośność
 #define TWO_ENCODERS
+#endif
 
 /*----- CLOCK MODUL RTC DS3132 -----*/
 // #define RTC_SCL			     7
@@ -131,6 +160,8 @@ Supported languages: HU, PL, NL, GR, DE (UA Local/namedays/namedays_UA.h is not 
   #define IR_PIN 21
 #elif DSP_MODEL == DSP_ILI9488
   #define IR_PIN 2
+#elif DSP_MODEL == DSP_ST7789
+  /* Waveshare: IR na razie wyłączone (etap 4, GPIO 15/18) */
 #else
   #error "Brak konfiguracji IR_PIN dla wybranego DSP_MODEL/PCB"
 #endif
@@ -143,13 +174,17 @@ Supported languages: HU, PL, NL, GR, DE (UA Local/namedays/namedays_UA.h is not 
   #define SDC_CS 47
 #elif DSP_MODEL == DSP_ILI9488
   #define SDC_CS 38
+#elif DSP_MODEL == DSP_ST7789
+  /* Waveshare: karta SD na razie wyłączona (etap 3) */
 #else
   #error "Brak konfiguracji SDC_CS dla wybranego DSP_MODEL/PCB"
 #endif
 
+#if DSP_MODEL == DSP_ILI9341 || DSP_MODEL == DSP_ILI9488
  #define SD_SPI_SCK  12
  #define SD_SPI_MISO 13
  #define SD_SPI_MOSI 11
+#endif
  #define SDSPISPEED 4000000 /* 4MHz - Slower speed to prevent display flicker on shared SPI bus */
  //#define DEBUG_SD    /* Comment this line to disable all SD debug output. */
 
@@ -222,7 +257,10 @@ When music is not playing (stopped or volume is 0), the pin is set to LOW. This 
 
 /*------Neopixel-----------------------------------------*/
 
+/* Waveshare: GPIO 42 to CS ekranu – NeoPixel wyłączony */
+#if DSP_MODEL == DSP_ILI9341 || DSP_MODEL == DSP_ILI9488
 #define NEOPIXEL_ON
+#endif
 #ifdef NEOPIXEL_ON
    #define NEOPIXEL_PIN 42
    #define LED_COUNT    16
@@ -295,7 +333,10 @@ When music is not playing (stopped or volume is 0), the pin is set to LOW. This 
 #endif
 
 /*----- Okładka albumu na ekranie SD_PLAYER -----*/
+/* Waveshare: wymaga karty SD – wyłączone do etapu 3 */
+#if DSP_MODEL == DSP_ILI9341 || DSP_MODEL == DSP_ILI9488
 #define SD_COVER_ART
+#endif
 #ifdef SD_COVER_ART
   #define SD_COVER_W  215
   #define SD_COVER_H  215

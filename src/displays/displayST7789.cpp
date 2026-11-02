@@ -11,6 +11,11 @@ DspCore::DspCore(): Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST) {}
 #endif
 
 void DspCore::initDisplay() {
+#if !DSP_HSPI && defined(TFT_SCLK) && defined(TFT_MOSI)
+  // Ekran na niestandardowych pinach SPI (np. Waveshare ESP32-S3-Touch-LCD-2.8).
+  // Adafruit wywołuje później SPI.begin() bez pinów – na ESP32 to no-op, bo magistrala już działa.
+  SPI.begin(TFT_SCLK, -1, TFT_MOSI, TFT_CS);
+#endif
   if(DSP_MODEL==DSP_ST7789_76){
     init(76,284);
   }else if(DSP_MODEL==DSP_ST7789_170){

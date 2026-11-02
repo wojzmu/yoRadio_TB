@@ -14,6 +14,7 @@ SPIFFS_WWW_DIR = PROJECT_DIR / "data" / "www"
 
 DISPLAY_VARIANTS = {
     "DSP_ILI9341": ("320x240", 72, 48),
+    "DSP_ST7789":  ("320x240", 72, 48),
     "DSP_ILI9486": ("480x320", 120, 90),
     "DSP_ILI9488": ("480x320", 120, 90),
     "DSP_ST7796":  ("480x320", 120, 90),
