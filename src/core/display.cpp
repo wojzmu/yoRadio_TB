@@ -567,7 +567,7 @@ void Display::_swichMode(displayMode_e newmode) {
     #else
         _showDialog(config.ipToStr(WiFi.localIP()));
         #endif
-        #if DSP_MODEL != DSP_ILI9341
+        #if DSP_MODEL != DSP_ILI9341 && DSP_MODEL != DSP_ST7789
         if (_chtxt) {
             _chtxt->moveTo({(uint16_t)(chtxtConf.left >= 5 ? chtxtConf.left - 5 : 0), (uint16_t)(chtxtConf.top + 5), 0});
             _chtxt->setTextSize(1);

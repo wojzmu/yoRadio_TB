@@ -47,10 +47,10 @@ const WidgetConfig apNameConf     PROGMEM = { TFT_FRAMEWDT, 66, 2, WA_CENTER };
 const WidgetConfig apName2Conf    PROGMEM = { TFT_FRAMEWDT, 90, 2, WA_CENTER };
 const WidgetConfig apPassConf     PROGMEM = { TFT_FRAMEWDT, 130, 2, WA_CENTER };
 const WidgetConfig apPass2Conf    PROGMEM = { TFT_FRAMEWDT, 154, 2, WA_CENTER };
-const WidgetConfig clockConf      PROGMEM = { TFT_FRAMEWDT*2, 160, 1, WA_RIGHT };
+const WidgetConfig clockConf      PROGMEM = { TFT_FRAMEWDT*2, 155, 1, WA_RIGHT };
 const WidgetConfig bootWdtConf    PROGMEM = { 0, 162, 1, WA_CENTER };
-const WidgetConfig namedayConf    PROGMEM = { TFT_FRAMEWDT, 139, 1, WA_LEFT };
-const WidgetConfig dateConf       PROGMEM = { TFT_FRAMEWDT *2, 169, 1, WA_LEFT };
+const WidgetConfig namedayConf    PROGMEM = { TFT_FRAMEWDT, 172, 1, WA_LEFT };
+const WidgetConfig dateConf       PROGMEM = { TFT_FRAMEWDT *2, 172, 1, WA_LEFT };
 
 const ProgressConfig bootPrgConf    PROGMEM = { 90, 14, 4 };
 const BitrateConfig fullbitrateConf PROGMEM = {{8, 114, 1, WA_LEFT}, 41 }; // left, top, fontsize, align, border size

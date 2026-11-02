@@ -1029,7 +1029,7 @@ void VuWidget::_draw() {
             dsp.setFont();
             dsp.setTextColor(0xFFFF);
             int text_x_L = label_left_L + (label_width - 6) / 2;
-            #if DSP_MODEL == DSP_ILI9341
+            #if DSP_MODEL == DSP_ILI9341 || DSP_MODEL == DSP_ST7789
             int text_y = ((_config.top - 2) + (label_height - 10) / 2) - 1;
             #else
             int text_y = (_config.top - 2) + (label_height - 10) / 2;
@@ -1060,7 +1060,7 @@ void VuWidget::_draw() {
             dsp.setFont();
             int text_x_L = label_left_L + (label_width - 6) / 2;
             int text_x_R = label_left_R + (label_width - 6) / 2;
-            #if DSP_MODEL == DSP_ILI9341
+            #if DSP_MODEL == DSP_ILI9341 || DSP_MODEL == DSP_ST7789
             int text_y = (label_top + (label_height - 8) / 2) - 1;
             #else
             int text_y = label_top + (label_height - 8) / 2;
@@ -1869,7 +1869,7 @@ void ClockWidget::_printClock(bool force) {
                 gfx.print(buf); // AM vagy PM kiírása
 
         #else
-            #if DSP_MODEL == DSP_ILI9341
+            #if DSP_MODEL == DSP_ILI9341 || DSP_MODEL == DSP_ST7789
                 constexpr int lineOffset = 17; // 320x240
             #else
                 constexpr int lineOffset = 25; // 480x320
@@ -2050,7 +2050,7 @@ void ClockWidget::getNamedayUpper(char* dest, size_t len) { // commongfx.h - ban
 void ClockWidget::_printNameday() {
     uint16_t nameday_top;
     memcpy_P(&_namedayConf, &namedayConf, sizeof(WidgetConfig));
-            #if DSP_MODEL == DSP_ILI9341
+            #if DSP_MODEL == DSP_ILI9341 || DSP_MODEL == DSP_ST7789
     nameday_top = _namedayConf.top + 14;
             #else
     nameday_top = _namedayConf.top + 22;
