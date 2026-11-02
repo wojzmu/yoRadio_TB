@@ -73,6 +73,7 @@ Supported languages: HU, PL, NL, GR, DE (UA Local/namedays/namedays_UA.h is not 
   #define TFT_CS         42
   #define TFT_DC         41
   #define TFT_RST        39
+  #define DEFAULT_INVERTDISPLAY true   /* panel IPS: bez inwersji kolory są odwrócone */
 #else
   #define TFT_DC         9
   #define TFT_CS         10

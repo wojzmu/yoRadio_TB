@@ -30,6 +30,11 @@
     #define DEFAULT_FLIPSCREEN false
 #endif
 
+// Panele IPS (np. ST7789T3 na Waveshare ESP32-S3-Touch-LCD-2.8) wymagają inwersji kolorów.
+#ifndef DEFAULT_INVERTDISPLAY
+    #define DEFAULT_INVERTDISPLAY false
+#endif
+
 Config config;
 
 void u8fix(char* src) {
@@ -966,7 +971,7 @@ void Config::resetSystem(const char* val, uint8_t clientId) {
     if (strcmp(val, "screen") == 0) {
         saveValue(&store.flipscreen, DEFAULT_FLIPSCREEN, false);
         display.flip();
-        saveValue(&store.invertdisplay, false, false);
+        saveValue(&store.invertdisplay, DEFAULT_INVERTDISPLAY, false);
         display.invert();
         saveValue(&store.dspon, true, false);
         store.brightness = 100;
@@ -984,6 +989,8 @@ void Config::resetSystem(const char* val, uint8_t clientId) {
         saveValue(&store.fadeStartDelay, (uint16_t)FADE_START_DELAY, true);
         saveValue(&store.fadeTarget, (uint8_t)FADE_TARGET, true);
         saveValue(&store.fadeStep, (uint8_t)FADE_STEP, true);
+        // flipscreen/invertdisplay zapisywane bez commit – utrwalić, nawet gdy kolejne pola się nie zmieniły.
+        EEPROM.commit();
         display.putRequest(NEWMODE, CLEAR);
         display.putRequest(NEWMODE, PLAYER);
         netserver.requestOnChange(GETSCREEN, clientId);
@@ -1065,7 +1072,7 @@ void Config::setDefaults() {
     store.vumeter = true;
     store.softapdelay = 0;
     store.flipscreen = DEFAULT_FLIPSCREEN;
-    store.invertdisplay = false;
+    store.invertdisplay = DEFAULT_INVERTDISPLAY;
     store.numplaylist = false;
     store.fliptouch = true;
     store.dbgtouch = false;
