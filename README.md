@@ -1,7 +1,69 @@
+# yoRadio na Waveshare ESP32-S3-Touch-LCD-2.8
+
+Fork projektu [yoRadio_TB](https://github.com/tomaszbunio/yoRadio_TB) (v8.8.2_TB, Tomasz Bunio),
+przeniesiony na gotową płytkę **Waveshare ESP32-S3-Touch-LCD-2.8**.
+Radio internetowe działa na tej płytce bez żadnego dodatkowego okablowania: ekran, dotyk, DAC i wzmacniacz z głośnikiem są na płytce.
+
+Pierwotny yoRadio_TB jest przeznaczony dla płytek składanych samodzielnie (ESP32-S3 + osobny wyświetlacz ILI9341/ILI9488,
+dotyk XPT2046, DAC PCM5102A, enkodery, IR, NeoPixel). Konfiguracja autora została zachowana — zmiany dla płytki Waveshare
+są włączane warunkiem `DSP_MODEL == DSP_ST7789` w `myoptions.h`.
+
+## Obsługiwana płytka
+
+| Element | Waveshare ESP32-S3-Touch-LCD-2.8 |
+|---|---|
+| Mikrokontroler | ESP32-S3R8, 16 MB flash, 8 MB PSRAM |
+| Ekran | 2,8" IPS 240×320, **ST7789T3** (SPI), używany poziomo 320×240 |
+| Dotyk | pojemnościowy **CST328** (I2C, adres 0x1A) — testowana wersja V1 płytki |
+| Audio | DAC **PCM5101** (I2S) → wzmacniacz → głośnik |
+| USB | USB-C do natywnego USB ESP32-S3 (USB-Serial/JTAG, bez mostka UART) |
+
+| Funkcja | GPIO |
+|---|---|
+| LCD SCLK / MOSI / CS / DC / RST / podświetlenie | 40 / 45 / 42 / 41 / 39 / 5 |
+| Dotyk CST328 SDA / SCL / INT / RST | 1 / 3 / 4 / 2 |
+| I2S BCLK / LRCK / DOUT | 48 / 38 / 47 |
+
+## Zmiany względem yoRadio_TB
+
+**Konfiguracja i sprzęt**
+- `myoptions.h`: `DSP_MODEL DSP_ST7789` z pinami płytki; dla tej płytki wyłączone są dotyk XPT2046, enkodery, IR, NeoPixel, karta SD i okładki SD (ich domyślne piny kolidują z płytką).
+- Ekran ST7789 na własnych pinach SPI (`TFT_SCLK`/`TFT_MOSI`, `SPI.begin(40, -1, 45, 42)` w `displayST7789.cpp`).
+- Biblioteka Adafruit ST7789/ST77xx (1.12.0, MIT) skopiowana do `src/Adafruit_ST7789/` — wersja z rejestru PlatformIO ciągnie bibliotekę `SD`, która przesłania SD frameworka ESP32.
+- Nowy sterownik dotyku **CST328** (`src/Touch/CST328/`, na podstawie demo Waveshare) i `TS_MODEL_CST328` w `options.h`; gesty forka działają bez zmian (lewo/prawo – głośność, góra/dół – stacje, stuknięcie – pauza, górny pasek – Preset/FAV).
+- `platformio.ini`: domyślne środowisko **`waveshare-s3-lcd28`** (dziedziczy środowisko autora) z `ARDUINO_USB_CDC_ON_BOOT=1` i `ARDUINO_USB_MODE=1` — log yoRadio idzie przez USB-C płytki, a esptool sam resetuje płytkę do wgrywania.
+
+**Ekran 320×240 na ST7789**
+- Układ ekranu jak dla ILI9341 320×240 (zegar flip, data, imieniny, VU, logo stacji 72×48, ekran SD_PLAYER w konfiguracji), warunki „320×240” forka obejmują też ST7789.
+- Ekran Preset/FAV włączony dla ST7789.
+- Domyślna inwersja kolorów dla panelu IPS (`DEFAULT_INVERTDISPLAY`), stosowana w ustawieniach fabrycznych i przy resecie ustawień ekranu.
+- `scripts/prepare_spiffs_logos.py` obsługuje `DSP_ST7789` (zestaw logo 320×240).
+
+**Poprawki błędów (dotyczą też innych płytek)**
+- Reset ustawień ekranu z WWW zapisuje teraz `flipscreen`/`invertdisplay` w EEPROM (wcześniej ginęły po restarcie).
+- Panel WWW: ikona resetu motywu przykrywała ikonę resetu ekranu w sekcji SCREEN — rozsunięte.
+
+**Czego nie ma (na razie)**
+- Odtwarzacza z karty SD (świadomie pominięty), pilota IR, enkoderów, RTC PCF85063, pomiaru baterii i obsługi przycisku zasilania.
+
+**Dodatki**
+- `docs/obudowa/obudowa.scad` — parametryczny model obudowy 3D (OpenSCAD) do druku dla tej płytki.
+
+## Budowanie i wgrywanie
+
+- PlatformIO z platformą pioarduino 55.03.37 — wymaga **Pythona 3.10–3.13** (3.14 nie jest obsługiwany). Na Windows uruchamiaj `pio` z PowerShella lub cmd, nie z Git Bash/MSYS.
+- `pio run -t upload` — firmware (domyślne środowisko `waveshare-s3-lcd28`).
+- Pliki panelu WWW i logo: `pio run -t uploadfs`. Uwaga: kasuje to zapisaną sieć Wi-Fi i playlistę. Jeśli wgrywanie przerywa się przy ~94% („The chip stopped responding”), wgraj obraz bez kompresji:
+  `python -m esptool --chip esp32s3 --port COMx write-flash --no-compress 0xC10000 .pio/build/waveshare-s3-lcd28/spiffs.bin`
+- Pojedynczy plik strony można wgrać bez kasowania danych: `curl -F "data=@data/www/<plik>;filename=<plik>" http://<ip-radia>/webboard`.
+- Po pierwszym uruchomieniu w panelu WWW włącz inwersję kolorów, jeśli ekran ma białe tło (nowa konfiguracja robi to sama).
+
+---
+
 # yoRadio – Tomasz Bunio fork
 
-Moje modyfikacje projektu yoRadio autorstwa [e2002](https://github.com/e2002/yoradio)
-i [VaraiTamas](https://github.com/VaraiTamas/yoRadio).
+Modyfikacje projektu yoRadio autorstwa [e2002](https://github.com/e2002/yoradio)
+i [VaraiTamas](https://github.com/VaraiTamas/yoRadio) wprowadzone przez autora yoRadio_TB (dokumentacja poniżej pochodzi z oryginalnego forka).
 
 ## Moje zmiany: v8.8.2_TB
 
