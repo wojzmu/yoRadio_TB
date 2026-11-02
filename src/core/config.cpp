@@ -61,7 +61,7 @@ bool Config::_isFSempty() {
 void Config::init() {
     EEPROM.begin(EEPROM_SIZE);
     /*----- I2C init -----*/
-#if (RTC_MODULE == DS3231) || (TS_MODEL == TS_MODEL_FT6X36) || (TS_MODEL == TS_MODEL_GT911)
+#if (RTC_MODULE == DS3231) || (TS_MODEL == TS_MODEL_FT6X36) || (TS_MODEL == TS_MODEL_GT911) || (TS_MODEL == TS_MODEL_CST328)
     Wire.begin(TS_SDA, TS_SCL);
     Wire.setClock(400000);
     Serial.println("Scanning I2S...");

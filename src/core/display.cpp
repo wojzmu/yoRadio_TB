@@ -582,7 +582,7 @@ void Display::_swichMode(displayMode_e newmode) {
     if (newmode == SDCHANGE) { _showDialog(LANG::const_waitForSD); }
     if (newmode == INFO || newmode == SETTINGS || newmode == TIMEZONE || newmode == WIFI) { _showDialog(LANG::const_DlgNextion); }
     if (newmode == NUMBERS) { _showDialog(""); }
-    #if DSP_MODEL == DSP_ILI9488 || DSP_MODEL == DSP_ILI9341
+    #if DSP_MODEL == DSP_ILI9488 || DSP_MODEL == DSP_ILI9341 || DSP_MODEL == DSP_ST7789
     if (newmode == PRESETS) {
         _pager->setPage(pages[PG_PRESETS], true);
         presets_drawScreen();

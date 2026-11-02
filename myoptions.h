@@ -101,6 +101,17 @@ Supported languages: HU, PL, NL, GR, DE (UA Local/namedays/namedays_UA.h is not 
 #endif
 
 
+/*----- Touch I2C: Waveshare CST328 (własna magistrala I2C) -----*/
+#if DSP_MODEL == DSP_ST7789
+ #define ENABLE_TOUCH
+ #define TS_MODEL TS_MODEL_CST328
+ #define TS_SDA   1
+ #define TS_SCL   3
+ #define TS_INT   4
+ #define TS_RST   2
+ #define TS_CS    -1   /* domyślne 3 = TS_SCL */
+#endif
+
 /*----- Touch I2C -----*/
 // #define TS_MODEL TS_MODEL_FT6X36
 // #define TS_SCL      7

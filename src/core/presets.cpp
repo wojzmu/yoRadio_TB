@@ -1,5 +1,5 @@
 #include "options.h"
-#if DSP_MODEL == DSP_ILI9488 || DSP_MODEL == DSP_ILI9341
+#if DSP_MODEL == DSP_ILI9488 || DSP_MODEL == DSP_ILI9341 || DSP_MODEL == DSP_ST7789
     #include "presets.h"
 
     #include <Arduino.h>
@@ -135,7 +135,7 @@ static bool    s_suppressToast = false;
 
 // -------------------- Layout --------------------
 static const uint16_t TOP_H = 40;
-#if DSP_MODEL == DSP_ILI9341
+#if DSP_MODEL == DSP_ILI9341 || DSP_MODEL == DSP_ST7789
 static const uint16_t FAV_H = 26;
 static const uint16_t PRESET_MARGIN = 6;
 static const uint16_t PRESET_GAP = 4;

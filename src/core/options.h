@@ -269,6 +269,7 @@ static constexpr int volumeStepsToPercent(int volumeSteps) {
 #define TS_MODEL_XPT2046        1
 #define TS_MODEL_GT911          2
 #define TS_MODEL_FT6X36         3
+#define TS_MODEL_CST328         4
 
 #ifndef ENABLE_TOUCH
   #ifdef TS_MODEL

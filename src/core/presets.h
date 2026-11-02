@@ -1,5 +1,5 @@
 #include "options.h"
-#if DSP_MODEL == DSP_ILI9488 || DSP_MODEL == DSP_ILI9341
+#if DSP_MODEL == DSP_ILI9488 || DSP_MODEL == DSP_ILI9341 || DSP_MODEL == DSP_ST7789
 #pragma once
 #include <Arduino.h>
 

@@ -62,6 +62,10 @@ static void ft6x36TouchHandler(TPoint point, TEvent e) {
         g_ftLastMs = millis();
     }
 }
+    #elif TS_MODEL == TS_MODEL_CST328
+        #include "../Touch/CST328/CST328.h"
+// Wire.begin(TS_SDA, TS_SCL) w config.cpp; odczyt przez polling w loop()
+CST328 ts(&Wire, TS_INT, TS_RST);
     #endif
 
 void TouchScreen::init(uint16_t w, uint16_t h) {
@@ -90,6 +94,9 @@ void TouchScreen::init(uint16_t w, uint16_t h) {
         Serial.println("[TOUCH] FT6X36 init FAILED (nincs IC / I2C hiba)");
     }
     ts.registerTouchHandler(ft6x36TouchHandler);
+    #endif
+    #if TS_MODEL == TS_MODEL_CST328
+    Serial.println(ts.begin() ? "[TOUCH] CST328 init OK" : "[TOUCH] CST328 init FAILED (brak ACK na I2C)");
     #endif
     _width = w;
     _height = h;
@@ -152,6 +159,9 @@ void TouchScreen::loop() {
 
     #if TS_MODEL == TS_MODEL_FT6X36
     ts.loop(); // feldolgozza az IRQ-kat és meghívja a touch handlert
+    #endif
+    #if TS_MODEL == TS_MODEL_CST328
+    ts.read();
     #endif
 
     // ---- touch debounce ----
@@ -234,6 +244,25 @@ void TouchScreen::loop() {
         touchY = (_height - 1) - touchY;
         #endif
             // Serial.printf("touchscreen.cpp--> touch X: %d, touch Y: %d\n", touchX, touchY);
+    #elif TS_MODEL == TS_MODEL_CST328
+        // Wstępnie jak FT6X36 (panel natywnie pionowy 240x320); do kalibracji w K3 na podstawie logu dbgtouch.
+        uint16_t rawX = ts.x;
+        uint16_t rawY = ts.y;
+        rawDbgX = rawX;
+        rawDbgY = rawY;
+        if (config.store.fliptouch) {
+            touchX = (_width - 1) - rawY;
+            touchY = rawX;
+        } else {
+            touchX = rawY;
+            touchY = (_height - 1) - rawX;
+        }
+        #ifdef X_TOUCH_MIRRORING
+        touchX = (_width - 1) - touchX;
+        #endif
+        #ifdef Y_TOUCH_MIRRORING
+        touchY = (_height - 1) - touchY;
+        #endif
     #endif
 
         if (config.store.dbgtouch &&
@@ -504,6 +533,8 @@ bool TouchScreen::_istouched() {
     // vagy ha nagyon friss esemény volt (kis hiszterézis).
     if (g_ftTouched) return true;
     return ((uint32_t)(millis() - g_ftLastMs) < 50);
+    #elif TS_MODEL == TS_MODEL_CST328
+    return ts.touched();
     #endif
 }
 
