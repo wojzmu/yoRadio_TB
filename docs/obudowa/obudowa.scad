@@ -2,7 +2,7 @@
 // Wymiary modułu: rysunek 2D Waveshare
 //   https://files.waveshare.com/wiki/ESP32-S3-Touch-LCD-2.8/ESP32-S3-Touch-LCD-2.8%202D.pdf
 // Druk (Bambu A1 mini, bez podpór): front twarzą do stołu, pokrywa zewnętrzną stroną do stołu,
-// listwy dociskowe (2 szt.) listwą do stołu. Wkręty M3 wkręcane bezpośrednio w plastik.
+// listwy dociskowe (2 szt.) listwą do stołu (kołkami do góry; moduł tylko dociśnięty), popychacze przycisków (3 szt.) kołnierzem do stołu. Wkręty M3 wkręcane bezpośrednio w plastik.
 // STL: openscad -o front.stl -D 'part="front"' obudowa.scad   (analogicznie back, clamp)
 //
 // Układ opisu (w nim drukujemy front — twarzą do stołu):
@@ -12,7 +12,7 @@
 // Obudowa stoi pochylona o `tilt` — podstawa to płaszczyzna y*cos(t) - z*sin(t) = 0.
 // Ekran poziomo, przyciski BOOT/RESET/PWR u góry, USB-C na prawym boku modułu.
 //
-// part = "front" | "back" | "clamp" | "assembly" | "inside" | "section"
+// part = "front" | "back" | "clamp" | "button" | "assembly" | "inside" | "section"
 
 part = "assembly";
 
@@ -39,14 +39,25 @@ glass_x0 = -33.53;                  // lewa krawędź szkła (okno wyśrodkowane
 glass_y0 = H - wall - 1.2 - glass_h; // dolna krawędź szkła (1.2 mm pod górną ścianką)
 win_cy   = glass_y0 + glass_h / 2;
 pcb_back_z = wall + 6.0;            // tylna powierzchnia PCB (szkło dociśnięte do frontu)
-comp_max_z = wall + 10.0;           // najwyższe elementy z tyłu PCB
+comp_max_z = wall + 10.0;           // najwyższe elementy z tyłu PCB (tulejki dystansowe)
+// w otworach PCB są przylutowane tulejki SMTSO-M2.5-4ET (gwint M2.5, wys. 4) — listwy przykręcamy do nich
+standoff_top = pcb_back_z + 4.0;
 pocket_rib = 3.0;                   // wysokość żeberek ustalających szkło
 // otwory PCB (od lewego-dolnego rogu szkła, widok z przodu): 6.4/66.4 x 4.82/45.72
 pcb_holes = [for (hx = [6.4, 66.4], hy = [4.82, 45.72]) [glass_x0 + hx, glass_y0 + hy]];
 // przyciski na górnej krawędzi (x od lewej krawędzi szkła), oś na z ~ wall+7.0
 btn_x = [14.24, 22.06, 29.88];
-btn_z = wall + 7.0;
-btn_d = 2.5;
+btn_z = wall + 6.9;   // wg modelu STEP oś trzpienia na z = 9.3
+// popychacze przycisków (3 szt.): trzon w otworze górnej ścianki, kołnierz od środka
+// (nie wypada; od dołu blokuje go moduł) — płaski spód kołnierza naciska trzpień przycisku
+// (TS24CA; obudowa przycisku i krawędź PCB są cofnięte o 0.7-1.2 mm względem trzpienia)
+btn_gap      = 1.7;    // wewnętrzna pow. górnej ścianki -> czoło trzpienia (wg modelu STEP: 1.69)
+btn_play     = 0.4;    // luz popychacza (przycisk nie może być wciśnięty na stałe)
+btn_hole_d   = 3.4;
+btn_shaft_d  = 3.0;
+btn_out      = 2.0;    // wystawanie ponad obudowę
+btn_flange_d = 5.5;
+btn_flange_t = btn_gap - btn_play;
 // USB-C na prawej krawędzi
 usb_y = glass_y0 + 25.12;
 usb_z = wall + 8.0;
@@ -62,6 +73,11 @@ grille_w = 15; grille_h = 25;       // kratka mieści się wewnątrz pierścieni
 slot_w = 1.6; slot_pitch = 3.2;
 rim_h = 1.0; rim_t = 0.8;           // ranteczek ustalający głośnik
 tab_w = 5.5;                        // wcięcie na języczek z przewodem (dół)
+// wcięcie na przewód głośników w ściankach działowych — otwarte od tyłu, przewód wkłada się
+// z góry (wtyk łączy oba głośniki, więc nie da się go przewlec przez otwór)
+cable_slot_w = 4;
+cable_slot_d = 3;                   // głębokość od tylnej krawędzi ścianki (resztę zamyka pokrywa)
+cable_slot_y = floor_y(D - wall, wall) + 1.5;   // dolna krawędź wcięcia (nad pochyloną podłogą)
 
 // ---------- mocowanie ----------
 pilot_d  = 2.6;                     // otwór pod wkręt M3 wkręcany w plastik
@@ -72,7 +88,7 @@ clamp_z0 = comp_max_z + 0.6;        // spód listwy dociskowej (nad elementami)
 clamp_t  = 3;
 clamp_wd = 8;
 clamp_boss_x = [glass_x0 - 4.5, glass_x0 + glass_w + 4.5];
-back_boss_x = W/2 - wall - boss_d/2;
+back_boss_x = W/2 - wall - boss_d/2 + 1;   // słupek wtopiony 1 mm w ściankę boczną
 back_boss_y_top = H - wall - boss_d/2;
 
 // ---------- pomocnicze ----------
@@ -143,6 +159,9 @@ module front() {
                     // słupki pod pokrywę (w narożnikach komór)
                     for (sx = [-1, 1], yy = [back_boss_y_top, floor_y(D - wall, wall) + boss_d/2 + 0.5])
                         translate([sx*back_boss_x, yy, wall]) cylinder(d=boss_d, h=D - 2*wall);
+                    // żebra łączące dolne słupki z podłogą
+                    for (sx = [-1, 1]) translate([sx*back_boss_x - 1, 0, wall])
+                        cube([2, floor_y(D - wall, wall) + boss_d/2 + 0.5, D - 2*wall]);
                     // żeberka ustalające szkło
                     translate([0, 0, wall]) linear_extrude(pocket_rib) difference() {
                         translate([glass_x0 - tol - 1.2, glass_y0 - tol - 1.2])
@@ -167,14 +186,14 @@ module front() {
         }
         // kratki głośników
         for (s = [-1, 1]) translate([s*spk_cx, spk_cy, wall/2]) grille();
-        // otwory na szpilkę do przycisków (górna ścianka) z pogłębieniem
+        // otwory na popychacze przycisków (górna ścianka) z fazką na zewnątrz
         for (bx = btn_x) translate([glass_x0 + bx, H - wall - 1, btn_z]) rotate([-90, 0, 0]) {
-            cylinder(d=btn_d, h=wall + 2);
-            translate([0, 0, wall + 1 - 0.8]) cylinder(d1=btn_d, d2=btn_d + 1.6, h=0.81);
+            cylinder(d=btn_hole_d, h=wall + 2);
+            translate([0, 0, wall + 1 - 0.5]) cylinder(d1=btn_hole_d, d2=btn_hole_d + 1, h=0.51);
         }
-        // otwory na przewody głośników w ściankach działowych
-        for (s = [-1, 1]) translate([s*(div_x + div_t/2), floor_y(8, wall) + 3, 8]) rotate([0, 90, 0])
-            cylinder(d=3.5, h=div_t + 2, center=true);
+        // wcięcia na przewód głośników w ściankach działowych (otwarte od tyłu)
+        for (s = [-1, 1]) translate([s*(div_x + div_t/2) - div_t, cable_slot_y, D - wall - cable_slot_d])
+            cube([2*div_t, cable_slot_w, cable_slot_d + 1]);
         // otwory pilotowe w słupkach pokrywy
         for (sx = [-1, 1], yy = [back_boss_y_top, floor_y(D - wall, wall) + boss_d/2 + 0.5])
             translate([sx*back_boss_x, yy, D - wall - 14]) cylinder(d=pilot_d, h=15);
@@ -207,6 +226,13 @@ module back() {
 }
 
 // ---------- listwy dociskowe PCB (2 szt., drukowane płasko) ----------
+// Listwa dociska moduł od tyłu: podkładki naciskają czoła tulejek dystansowych PCB, kołki
+// w otworach tulejek ustalają moduł. Podkładki sięgają clamp_preload poniżej czoła tulejek —
+// po przykręceniu listwy (M3 w słupki) ugina się ona i dociska szkło do frontu. Moduł nie jest
+// przykręcany, więc wystarczą same wkręty M3.
+clamp_preload = 0.3;   // do sprawdzenia na wydruku (ew. 0.5 mm pianki pod podkładką)
+clamp_pin_d   = 1.6;    // kołek w otwór tulejki M2.5 (rdzeń gwintu ok. 1.9-2.0)
+clamp_pin_l   = 2.0;
 module clamp() {
     hy = pcb_holes[0][1];
     x0 = clamp_boss_x[0]; x1 = clamp_boss_x[1];
@@ -215,12 +241,31 @@ module clamp() {
             translate([x0 - clamp_wd/2, hy - clamp_wd/2, clamp_z0])
                 linear_extrude(clamp_t) rrect(x1 - x0 + clamp_wd, clamp_wd, 2);
             for (hx = [pcb_holes[0][0], pcb_holes[2][0]]) translate([hx, hy, 0]) {
-                translate([0, 0, pcb_back_z]) cylinder(d=4.5, h=clamp_z0 - pcb_back_z + 0.01);
-                translate([0, 0, pcb_back_z - 1.2]) cylinder(d=1.9, h=1.21);  // kołek w otwór PCB
+                z0 = standoff_top - clamp_preload;
+                translate([0, 0, z0]) cylinder(d=5, h=clamp_z0 - z0 + 0.01);
+                // kołek z fazką na końcu (łatwiej trafić w otwór)
+                translate([0, 0, z0 - clamp_pin_l + 0.4]) cylinder(d=clamp_pin_d, h=clamp_pin_l - 0.4 + 0.01);
+                translate([0, 0, z0 - clamp_pin_l]) cylinder(d1=clamp_pin_d - 0.6, d2=clamp_pin_d, h=0.41);
             }
         }
         for (cx = clamp_boss_x) translate([cx, hy, clamp_z0 - 1]) cylinder(d=screw_d, h=clamp_t + 2);
     }
+}
+
+// ---------- popychacz przycisku (3 szt.) ----------
+// opis wzdłuż własnej osi: z = 0 spód kołnierza (przy przycisku), rośnie na zewnątrz obudowy
+module button() {
+    cylinder(d=btn_flange_d, h=btn_flange_t);
+    translate([0, 0, btn_flange_t - 0.01]) {
+        cylinder(d=btn_shaft_d, h=wall + btn_out - btn_shaft_d/4);
+        // zaokrąglony czubek
+        translate([0, 0, wall + btn_out - btn_shaft_d/4]) scale([1, 1, 0.5])
+            sphere(d=btn_shaft_d);
+    }
+}
+// popychacz na miejscu w obudowie (oparty kołnierzem o górną ściankę)
+module button_placed(bx) {
+    translate([glass_x0 + bx, H - wall - btn_flange_t, btn_z]) rotate([-90, 0, 0]) button();
 }
 
 // ---------- wyjście ----------
@@ -232,6 +277,7 @@ module mx() mirror([1, 0, 0]) children();
 if (part == "front") mx() front();
 else if (part == "back") translate([0, 0, D]) rotate([0, 180, 0]) mx() back();
 else if (part == "clamp") translate([0, 0, clamp_z0 + clamp_t]) rotate([0, 180, 0]) mx() clamp();
+else if (part == "button") for (i = [0 : 2]) translate([i*8, 0, 0]) button();  // kołnierzem do stołu
 else if (part == "section") {   // przekrój do kontroli: plaster x = section_x (x w układzie opisu)
     intersection() {
         translate([section_x - 0.5, -50, -50]) cube([1, 200, 200]);
@@ -250,9 +296,11 @@ module assembly_local() {
         if (show_back) color("DimGray", 0.6) back();
         color("Orange") for (hy = [pcb_holes[0][1], pcb_holes[1][1]])
             translate([0, hy - pcb_holes[0][1], 0]) clamp();
+        color("Red") for (bx = btn_x) button_placed(bx);
         // moduł (podgląd)
         color("Black") translate([glass_x0, glass_y0, wall]) cube([glass_w, glass_h, 3.6]);
         color("SeaGreen") translate([glass_x0 + 1.9, glass_y0 + 0.32, wall + 4.45]) cube([69, 49.9, 1.55]);
+        color("Gold") for (h = pcb_holes) translate([h[0], h[1], pcb_back_z]) cylinder(d=4.2, h=4);
         // głośniki (podgląd)
         color("Black") for (s = [-1, 1]) translate([s*spk_cx, spk_cy, wall + rim_h - 1])
             linear_extrude(4) stadium(spk_w, spk_h);
