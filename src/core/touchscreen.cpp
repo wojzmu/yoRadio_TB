@@ -245,12 +245,14 @@ void TouchScreen::loop() {
         #endif
             // Serial.printf("touchscreen.cpp--> touch X: %d, touch Y: %d\n", touchX, touchY);
     #elif TS_MODEL == TS_MODEL_CST328
-        // Wstępnie jak FT6X36 (panel natywnie pionowy 240x320); do kalibracji w K3 na podstawie logu dbgtouch.
+        // Panel natywnie pionowy 240x320. Współrzędne podążają za obrotem ekranu (flipscreen),
+        // więc kierunki gestów i trafienia zgadzają się z obrazem; fliptouch = true to położenie zgodne z ekranem,
+        // fliptouch = false dodatkowo obraca dotyk o 180°.
         uint16_t rawX = ts.x;
         uint16_t rawY = ts.y;
         rawDbgX = rawX;
         rawDbgY = rawY;
-        if (config.store.fliptouch) {
+        if (config.store.fliptouch != config.store.flipscreen) {
             touchX = (_width - 1) - rawY;
             touchY = rawX;
         } else {

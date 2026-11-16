@@ -45,6 +45,13 @@ static constexpr bool kTouchEnabled = true;
 static constexpr bool kTouchEnabled = false;
 #endif
 
+// CST328: touchscreen.cpp podaje współrzędne już w układzie obróconego ekranu — nie odwracać ich drugi raz.
+#if TS_MODEL == TS_MODEL_CST328
+static constexpr bool kTouchFollowsFlip = true;
+#else
+static constexpr bool kTouchFollowsFlip = false;
+#endif
+
 #ifdef DEBUG_MODE_SWITCH
 static const char* dbgModeName(displayMode_e m) {
     switch (m) {
@@ -735,7 +742,7 @@ void Display::resetPlaylistCache() {
 
 bool Display::isClockMMTap(uint16_t x, uint16_t y) {
     if (!_clock) return false;
-    if (config.store.flipscreen) {
+    if (config.store.flipscreen && !kTouchFollowsFlip) {
         x = (uint16_t)((int)dsp.width() - 1 - (int)x);
         y = (uint16_t)((int)dsp.height() - 1 - (int)y);
     }
@@ -744,7 +751,7 @@ bool Display::isClockMMTap(uint16_t x, uint16_t y) {
 
 bool Display::isClockSecondsTap(uint16_t x, uint16_t y) {
     if (!_clock) return false;
-    if (config.store.flipscreen) {
+    if (config.store.flipscreen && !kTouchFollowsFlip) {
         x = (uint16_t)((int)dsp.width() - 1 - (int)x);
         y = (uint16_t)((int)dsp.height() - 1 - (int)y);
     }
@@ -753,7 +760,7 @@ bool Display::isClockSecondsTap(uint16_t x, uint16_t y) {
 
 int8_t Display::isSdTransportTap(uint16_t x, uint16_t y) {
     if (!kTouchEnabled) return -1;
-    if (config.store.flipscreen) {
+    if (config.store.flipscreen && !kTouchFollowsFlip) {
         x = (uint16_t)((int)dsp.width() - 1 - (int)x);
         y = (uint16_t)((int)dsp.height() - 1 - (int)y);
     }
